@@ -97,6 +97,7 @@
         <div class="stat"><div class="n" id="countTarget">0</div><div class="l">Z udziałem przypisanej osoby</div></div>
         <div class="stat"><div class="n" id="minutesAll">0 min</div><div class="l">Łącznie wszystkie aktywności</div></div>
         <div class="stat"><div class="n" id="peopleAvg">0</div><div class="l">Śr. osób / aktywność</div></div>
+        <div class="stat"><div class="n" id="lastPeople">0</div><div class="l">Osób na ostatnim poświadczeniu</div></div>
         <div class="stat wide"><div class="l">Weryfikacja ostatniego poświadczenia</div><div class="n" style="font-size:18px;margin-top:4px" id="validity">—</div></div>
       </div>
       <div class="chips" id="divisionChips"></div>
@@ -113,16 +114,16 @@
     </div>
     <div class="tableWrap">
       <table class="table">
-        <thead><tr><th>#</th><th>Rodzaj / nazwa</th><th>Oddział</th><th>Kategoria</th><th>Czas</th><th>Miejsce</th><th>Osób</th><th>Sprawdzana osoba</th><th>Udział</th><th>Poprawność</th><th></th></tr></thead>
+        <thead><tr><th>#</th><th>Rodzaj / nazwa</th><th>Oddział</th><th>Kategoria</th><th>Czas</th><th>Miejsce</th><th>Osób na poświadczeniu</th><th>Sprawdzana osoba</th><th>Udział</th><th>Poprawność</th><th></th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
   </section>
 
-  <div class="footer">Dane są zapisywane lokalnie w tej przeglądarce (localStorage).</div>
+  <div class="footer">Na starcie wszystko wynosi 0. Czas i statystyki pojawiają się dopiero po dodaniu poświadczenia. Dane są zapisywane lokalnie w tej przeglądarce.</div>
 </div>
 <script>
-const STORAGE='poswiadczenia_oddzialy_osoby_v1';
+const STORAGE='poswiadczenia_oddzialy_osoby_v2';
 let items=[];
 let selectedDivision='all';
 try{items=JSON.parse(localStorage.getItem(STORAGE)||'[]')}catch(e){items=[]}
@@ -215,7 +216,7 @@ function parseOne(block){
 }
 function save(){localStorage.setItem(STORAGE,JSON.stringify(items));render()}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function fmtMin(m){m=Number(m)||0;const h=Math.floor(m/60),r=m%60;return h?`${h} h ${r? r+' min':''}`.trim():`${r} min`}
+function fmtMin(m){m=Number(m)||0;return `${m} min`}
 function renderDivisionDashboard(){
   const dash=$('divisionDashboard');
   dash.classList.remove('cg','jedi','d501','d1st','d104');
@@ -253,7 +254,9 @@ function render(){
   $('countAll').textContent=items.length;$('countTarget').textContent=targetItems.length;
   $('minutesAll').textContent=fmtMin(items.reduce((a,x)=>a+x.minutes,0));
   $('peopleAvg').textContent=items.length?(items.reduce((a,x)=>a+x.people.length,0)/items.length).toFixed(1):'0';
-  const last=items[items.length-1]; $('validity').innerHTML=last?(last.valid?'<span class="ok">✓ Poprawnie wystawione</span>':'<span class="bad">✕ Błędy: '+esc(last.issues.join(', '))+'</span>'):'—';
+  const last=items[items.length-1];
+  $('lastPeople').textContent=last?last.people.length:'0';
+  $('validity').innerHTML=last?(last.valid?'<span class="ok">✓ Poprawnie wystawione</span>':'<span class="bad">✕ Błędy: '+esc(last.issues.join(', '))+'</span>'):'—';
   const divs={}; items.forEach(x=>{if(x.division!=='Nieznany'){if(!divs[x.division]) divs[x.division]={count:0,minutes:0,mano:0};divs[x.division].count++;divs[x.division].minutes+=x.minutes;if(x.targetFound)divs[x.division].mano++;}});
   const divOrder=['CG','JEDI','501','1st','104th'];
   $('divisionChips').innerHTML=divOrder.map(d=>{const v=divs[d]||{count:0,minutes:0,mano:0};return `<span class="chip"><b>${d}</b>: ${v.count} aktyw. / ${fmtMin(v.minutes)} / ${esc(targetForDivision(d))} ${v.mano}×</span>`}).join('');
@@ -267,7 +270,7 @@ function render(){
   if(q) rows=rows.filter(x=>norm([x.name,x.division,x.cat,x.place,x.people.join(' ')].join(' ')).includes(q));
   $('tbody').innerHTML=rows.length?rows.map(x=>`<tr>
     <td>${x.index+1}</td><td><b>${esc(x.name||'—')}</b><div class="small">${esc(x.durationText||'')}</div></td><td><b>${esc(x.division)}</b></td><td>${esc(x.cat)}</td>
-    <td><b>${fmtMin(x.minutes)}</b></td><td>${esc(x.place||'—')}</td><td><b>${x.people.length}</b><div class="small" title="${esc(x.people.join(' | '))}">${x.people.length?'lista odczytana':'brak listy'}</div></td>
+    <td><b>${fmtMin(x.minutes)}</b></td><td>${esc(x.place||'—')}</td><td><b>${x.people.length} ${x.people.length===1?'osoba':'osób'}</b><div class="small" title="${esc(x.people.join(' | '))}">${x.people.length?'lista odczytana':'brak listy'}</div></td>
     <td><b>${esc(x.targetName||'—')}</b></td>
     <td>${x.targetFound?'<span class="pill yes">✓ TAK</span>':'<span class="pill no">✕ NIE</span>'}</td>
     <td>${x.valid?'<span class="ok">✓ OK</span>':'<span class="bad">✕ '+esc(x.issues.join(', '))+'</span>'}</td>
