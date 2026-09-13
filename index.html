@@ -1,0 +1,3077 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kalkulator poświadczeń oddziałów</title>
+
+<style>
+:root{
+  --bg:#0b1220;
+  --panel:#111b2e;
+  --panel2:#0f1728;
+  --border:#263753;
+  --text:#eaf2ff;
+  --muted:#9fb1cb;
+  --accent:#4ea1ff;
+  --ok:#46d17d;
+  --bad:#ff6b6b;
+  --warn:#ffcc66;
+  --chip:#172640;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,Arial,sans-serif;
+  background:linear-gradient(180deg,#08101d,#0d1626 45%,#0a1220);
+  color:var(--text);
+}
+
+.wrap{
+  max-width:1300px;
+  margin:auto;
+  padding:24px;
+}
+
+.top{
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+  justify-content:space-between;
+  flex-wrap:wrap;
+}
+
+h1{
+  font-size:28px;
+  margin:0 0 6px;
+}
+
+.sub{
+  color:var(--muted);
+  margin:0;
+}
+
+.card{
+  background:rgba(17,27,46,.96);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:18px;
+  box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1.15fr .85fr;
+  gap:18px;
+  margin-top:18px;
+}
+
+@media(max-width:920px){
+  .grid{
+    grid-template-columns:1fr;
+  }
+}
+
+label{
+  display:block;
+  font-weight:700;
+  margin:0 0 8px;
+}
+
+textarea,
+input,
+select{
+  width:100%;
+  background:#09111f;
+  color:var(--text);
+  border:1px solid #304462;
+  border-radius:10px;
+  padding:11px 12px;
+  font:inherit;
+  outline:none;
+}
+
+textarea{
+  min-height:330px;
+  resize:vertical;
+  line-height:1.45;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(78,161,255,.13);
+}
+
+.row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.row>*{
+  flex:1;
+}
+
+.btns{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+
+.btn{
+  border:0;
+  border-radius:10px;
+  padding:11px 15px;
+  font-weight:800;
+  cursor:pointer;
+  background:var(--accent);
+  color:#06101e;
+}
+
+.btn.secondary{
+  background:#243653;
+  color:var(--text);
+}
+
+.btn.danger{
+  background:#52242d;
+  color:#ffdfe4;
+}
+
+.btn:hover{
+  filter:brightness(1.06);
+}
+
+.summary{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.stat{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:12px;
+}
+
+.stat .n{
+  font-size:25px;
+  font-weight:900;
+}
+
+.stat .l{
+  font-size:12px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+
+.wide{
+  grid-column:1/-1;
+}
+
+.ok{
+  color:var(--ok);
+}
+
+.bad{
+  color:var(--bad);
+}
+
+.warn{
+  color:var(--warn);
+}
+
+.chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:10px;
+}
+
+.chip{
+  background:var(--chip);
+  border:1px solid #294261;
+  padding:7px 10px;
+  border-radius:999px;
+  font-size:13px;
+}
+
+.chip b{
+  color:#fff;
+}
+
+.tableWrap{
+  overflow:auto;
+  margin-top:18px;
+}
+
+.table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:900px;
+}
+
+.table th,
+.table td{
+  padding:10px 12px;
+  border-bottom:1px solid #233552;
+  text-align:left;
+  vertical-align:top;
+}
+
+.table th{
+  position:sticky;
+  top:0;
+  background:#111b2e;
+  color:#c9d8ee;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+}
+
+.table tr:hover td{
+  background:rgba(255,255,255,.018);
+}
+
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 8px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+}
+
+.pill.yes{
+  background:rgba(70,209,125,.12);
+  color:#75e9a3;
+}
+
+.pill.no{
+  background:rgba(255,107,107,.12);
+  color:#ff9f9f;
+}
+
+.small{
+  font-size:12px;
+  color:var(--muted);
+}
+
+.errorBox{
+  white-space:pre-wrap;
+  background:#20151a;
+  border:1px solid #5b2934;
+  border-radius:10px;
+  padding:10px;
+  color:#ffb0ba;
+  margin-top:12px;
+  display:none;
+}
+
+.help{
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+details{
+  margin-top:12px;
+}
+
+summary{
+  cursor:pointer;
+  color:#cfe1fb;
+  font-weight:700;
+}
+
+.footer{
+  margin-top:18px;
+  color:var(--muted);
+  font-size:12px;
+  text-align:center;
+}
+
+
+/* ZAKŁADKI */
+
+.division-tabs{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:18px 0 0;
+}
+
+.division-tab{
+  border:1px solid transparent;
+  border-radius:12px;
+  padding:12px 20px;
+  font-weight:900;
+  color:white;
+  cursor:pointer;
+  opacity:.78;
+  transition:.18s transform,.18s opacity,.18s box-shadow;
+  min-width:105px;
+}
+
+.division-tab:hover{
+  opacity:1;
+  transform:translateY(-1px);
+}
+
+.division-tab.active{
+  opacity:1;
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,.14),
+    0 8px 22px rgba(0,0,0,.28);
+
+  transform:translateY(-1px);
+}
+
+.division-tab.all{
+  background:#2b3850;
+}
+
+/* CG CZERWONY */
+
+.division-tab.cg{
+  background:#a72835;
+}
+
+/* JEDI ZIELONY */
+
+.division-tab.jedi{
+  background:#187a43;
+}
+
+/* 501 CIEMNY NIEBIESKI */
+
+.division-tab.d501{
+  background:#173c78;
+}
+
+/* 1ST JASNY NIEBIESKI */
+
+.division-tab.d1st{
+  background:#45a5e6;
+  color:#04131f;
+}
+
+
+/* PANEL ODDZIAŁU */
+
+.division-dashboard{
+  margin-top:12px;
+  border-radius:15px;
+  padding:16px;
+  border:1px solid var(--border);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.035),
+      rgba(255,255,255,.012)
+    );
+}
+
+.division-dashboard.cg{
+  border-color:#84313a;
+}
+
+.division-dashboard.jedi{
+  border-color:#2b7950;
+}
+
+.division-dashboard.d501{
+  border-color:#31558c;
+}
+
+.division-dashboard.d1st{
+  border-color:#489bcf;
+}
+
+.division-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+
+.division-title{
+  font-size:21px;
+  font-weight:900;
+}
+
+.division-person{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.division-stats{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(120px,1fr));
+  gap:9px;
+}
+
+.division-mini{
+  background:rgba(5,12,23,.55);
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:11px;
+}
+
+.division-mini .v{
+  font-size:19px;
+  font-weight:900;
+}
+
+.division-mini .k{
+  font-size:11px;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin-top:2px;
+}
+
+@media(max-width:900px){
+
+  .division-stats{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="top">
+
+<div>
+
+<h1>
+Kalkulator poświadczeń oddziałów
+</h1>
+
+<p class="sub">
+Wklejasz całe poświadczenia z oddziałów CG, JEDI, 501 i 1st.
+U góry możesz przełączać zakładki oddziałów i zobaczyć ich
+łączne statystyki oraz udział przypisanej osoby.
+</p>
+
+</div>
+
+
+<div
+style="min-width:330px"
+class="card"
+>
+
+<label>
+Osoby sprawdzane według oddziału
+</label>
+
+<div
+class="chips"
+style="margin-top:0"
+>
+
+<span class="chip">
+<b>CG</b>: Briet
+</span>
+
+<span class="chip">
+<b>JEDI</b>: Yoda
+</span>
+
+<span class="chip">
+<b>501</b>: CC Mano
+</span>
+
+<span class="chip">
+<b>1st</b>: Hote
+</span>
+
+</div>
+
+<div
+class="small"
+style="margin-top:9px"
+>
+Przy każdym poświadczeniu strona automatycznie sprawdza
+właściwą osobę dla rozpoznanego oddziału.
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- ZAKŁADKI -->
+
+<div
+class="division-tabs"
+id="divisionTabs"
+>
+
+<button
+class="division-tab all active"
+data-division="all"
+>
+Wszystkie
+</button>
+
+<button
+class="division-tab d501"
+data-division="501"
+>
+501
+</button>
+
+<button
+class="division-tab d1st"
+data-division="1st"
+>
+1st
+</button>
+
+<button
+class="division-tab cg"
+data-division="CG"
+>
+CG
+</button>
+
+<button
+class="division-tab jedi"
+data-division="JEDI"
+>
+JEDI
+</button>
+
+</div>
+
+
+
+<!-- PODSUMOWANIE ODDZIAŁU -->
+
+<div
+class="division-dashboard"
+id="divisionDashboard"
+>
+
+<div class="division-head">
+
+<div>
+
+<div
+class="division-title"
+id="dashTitle"
+>
+Wszystkie oddziały
+</div>
+
+<div
+class="division-person"
+id="dashPerson"
+>
+Wybierz oddział, aby zobaczyć jego osobę i łączne statystyki.
+</div>
+
+</div>
+
+</div>
+
+
+<div class="division-stats">
+
+
+<div class="division-mini">
+
+<div
+class="v"
+id="dashActivities"
+>
+0
+</div>
+
+<div class="k">
+Aktywności łącznie
+</div>
+
+</div>
+
+
+<div class="division-mini">
+
+<div
+class="v"
+id="dashMinutes"
+>
+0 min
+</div>
+
+<div class="k">
+Czas oddziału łącznie
+</div>
+
+</div>
+
+
+<div class="division-mini">
+
+<div
+class="v"
+id="dashPresence"
+>
+0
+</div>
+
+<div class="k">
+Udziały osoby
+</div>
+
+</div>
+
+
+<div class="division-mini">
+
+<div
+class="v"
+id="dashPersonMinutes"
+>
+0 min
+</div>
+
+<div class="k">
+Czas osoby łącznie
+</div>
+
+</div>
+
+
+<div class="division-mini">
+
+<div
+class="v"
+id="dashPeople"
+>
+0
+</div>
+
+<div class="k">
+Osób łącznie na aktywnościach
+</div>
+
+</div>
+
+</div>
+
+
+<div
+class="chips"
+id="dashCategories"
+>
+</div>
+
+</div>
+
+
+
+
+<!-- DODAWANIE -->
+
+<div class="grid">
+
+
+<section class="card">
+
+<label for="raw">
+Wklej poświadczenie lub kilka poświadczeń
+</label>
+
+<textarea
+id="raw"
+placeholder="**POSWIADCZENIE**
+
+**NAZWA I RODZAJ AKTYWNOSCI:** JEDI - Wyklad
+**CZAS AKTYWNOSCI:** 70 minut
+**MIEJSCE AKTYWNOSCI:** Strefa JEDI
+**OSOBY BIORACE UDZIAL:**
+
+- Wielki Mistrz Yoda (...)"
+></textarea>
+
+
+<div class="btns">
+
+<button
+class="btn"
+id="parseBtn"
+>
+Dodaj poświadczenie
+</button>
+
+<button
+class="btn secondary"
+id="exampleBtn"
+>
+Wstaw przykład
+</button>
+
+<button
+class="btn secondary"
+id="exportBtn"
+>
+Eksport CSV
+</button>
+
+<button
+class="btn danger"
+id="clearBtn"
+>
+Wyczyść wszystko
+</button>
+
+</div>
+
+
+<div
+id="err"
+class="errorBox"
+>
+</div>
+
+
+<details>
+
+<summary>
+Jak ma wyglądać tekst?
+</summary>
+
+<div
+class="help"
+style="margin-top:8px"
+>
+
+Parser rozpoznaje:
+
+<b>NAZWA I RODZAJ AKTYWNOSCI</b>,
+<b>CZAS AKTYWNOSCI</b>,
+<b>MIEJSCE AKTYWNOSCI</b>,
+<b>OSOBY BIORACE UDZIAL</b>.
+
+<br><br>
+
+Obsługiwane są przykładowo:
+
+<br>
+
+CG - Patrol
+
+<br>
+
+JEDI - Wykład
+
+<br>
+
+501 - Trening
+
+<br>
+
+1st - Selekcja
+
+</div>
+
+</details>
+
+
+</section>
+
+
+
+<!-- OGÓLNE STATYSTYKI -->
+
+<aside class="card">
+
+
+<div class="summary">
+
+
+<div class="stat">
+
+<div
+class="n"
+id="countAll"
+>
+0
+</div>
+
+<div class="l">
+Wszystkie poświadczenia
+</div>
+
+</div>
+
+
+<div class="stat">
+
+<div
+class="n"
+id="countTarget"
+>
+0
+</div>
+
+<div class="l">
+Z udziałem przypisanej osoby
+</div>
+
+</div>
+
+
+<div class="stat">
+
+<div
+class="n"
+id="minutesAll"
+>
+0 min
+</div>
+
+<div class="l">
+Łącznie wszystkie aktywności
+</div>
+
+</div>
+
+
+<div class="stat">
+
+<div
+class="n"
+id="peopleAvg"
+>
+0
+</div>
+
+<div class="l">
+Śr. osób / aktywność
+</div>
+
+</div>
+
+
+<div class="stat wide">
+
+<div class="l">
+Weryfikacja ostatniego poświadczenia
+</div>
+
+<div
+class="n"
+style="font-size:18px;margin-top:4px"
+id="validity"
+>
+—
+</div>
+
+</div>
+
+
+</div>
+
+
+<div
+class="chips"
+id="divisionChips"
+>
+</div>
+
+
+<div
+class="chips"
+id="categoryChips"
+>
+</div>
+
+
+<div
+class="help"
+style="margin-top:14px"
+>
+
+Wszystkie czasy i kategorie są liczone ze
+<b>wszystkich poświadczeń</b>.
+
+<br><br>
+
+Udział jest sprawdzany według oddziału:
+
+<br>
+
+<b>CG — Briet</b>
+
+<br>
+
+<b>JEDI — Yoda</b>
+
+<br>
+
+<b>501 — CC Mano</b>
+
+<br>
+
+<b>1st — Hote</b>
+
+</div>
+
+
+</aside>
+
+</div>
+
+
+
+<!-- TABELA -->
+
+<section
+class="card"
+style="margin-top:18px"
+>
+
+
+<div
+class="row"
+style="margin-bottom:10px"
+>
+
+
+<div>
+
+<label for="filter">
+Filtr tabeli
+</label>
+
+<select id="filter">
+
+<option
+value="all"
+selected
+>
+Wszystkie
+</option>
+
+<option value="target">
+Tylko z przypisaną osobą
+</option>
+
+<option value="missing">
+Tylko bez przypisanej osoby
+</option>
+
+</select>
+
+</div>
+
+
+
+<div>
+
+<label for="divisionFilter">
+Oddział
+</label>
+
+<select id="divisionFilter">
+
+<option value="all">
+Wszystkie oddziały
+</option>
+
+<option value="CG">
+CG
+</option>
+
+<option value="JEDI">
+JEDI
+</option>
+
+<option value="501">
+501
+</option>
+
+<option value="1st">
+1st
+</option>
+
+<option value="Nieznany">
+Nierozpoznane
+</option>
+
+</select>
+
+</div>
+
+
+
+<div>
+
+<label for="search">
+Szukaj
+</label>
+
+<input
+id="search"
+placeholder="np. wykład, patrol, JEDI..."
+/>
+
+</div>
+
+
+</div>
+
+
+
+<div class="tableWrap">
+
+<table class="table">
+
+<thead>
+
+<tr>
+
+<th>#</th>
+
+<th>
+Rodzaj / nazwa
+</th>
+
+<th>
+Oddział
+</th>
+
+<th>
+Kategoria
+</th>
+
+<th>
+Czas
+</th>
+
+<th>
+Miejsce
+</th>
+
+<th>
+Osób
+</th>
+
+<th>
+Sprawdzana osoba
+</th>
+
+<th>
+Udział
+</th>
+
+<th>
+Poprawność
+</th>
+
+<th></th>
+
+</tr>
+
+</thead>
+
+
+<tbody id="tbody">
+</tbody>
+
+
+</table>
+
+</div>
+
+</section>
+
+
+<div class="footer">
+Dane są zapisywane lokalnie w tej przeglądarce.
+</div>
+
+
+</div>
+
+
+
+<script>
+
+/* =========================================
+   ZAPIS DANYCH
+========================================= */
+
+const STORAGE =
+'poswiadczenia_oddzialy_osoby_v1';
+
+let items = [];
+
+let selectedDivision = 'all';
+
+
+try{
+
+items =
+JSON.parse(
+localStorage.getItem(STORAGE) || '[]'
+);
+
+}catch(e){
+
+items = [];
+
+}
+
+
+
+const $ =
+id =>
+document.getElementById(id);
+
+
+
+/* =========================================
+   NORMALIZACJA TEKSTU
+========================================= */
+
+const norm =
+s =>
+(s || '')
+
+.toLowerCase()
+
+.normalize('NFD')
+
+.replace(
+/[\u0300-\u036f]/g,
+''
+)
+
+.replace(
+/[*_`]/g,
+''
+)
+
+.replace(
+/\s+/g,
+' '
+)
+
+.trim();
+
+
+
+/* =========================================
+   OSOBY DLA ODDZIAŁÓW
+========================================= */
+
+const DIVISION_TARGETS = {
+
+CG:'Briet',
+
+JEDI:'Yoda',
+
+'501':'CC Mano',
+
+'1st':'Hote'
+
+};
+
+
+
+function targetForDivision(div){
+
+return DIVISION_TARGETS[div] || '';
+
+}
+
+
+
+function personPresent(
+people,
+div
+){
+
+const target =
+norm(
+targetForDivision(div)
+);
+
+return !!target &&
+people.some(
+p =>
+norm(p).includes(target)
+);
+
+}
+
+
+
+/* =========================================
+   CZAS
+========================================= */
+
+function parseDuration(text){
+
+const t =
+norm(text)
+.replace(',', '.');
+
+let min = 0;
+
+let found = false;
+
+
+
+const h =
+t.match(
+/(\d+(?:\.\d+)?)\s*(?:h|godz(?:ina|iny|in)?)/i
+);
+
+if(h){
+
+min +=
+Math.round(
+parseFloat(h[1]) * 60
+);
+
+found = true;
+
+}
+
+
+
+const m =
+t.match(
+/(\d+)\s*(?:min(?:ut|uty|uta)?|m\b)/i
+);
+
+if(m){
+
+min +=
+parseInt(m[1]);
+
+found = true;
+
+}
+
+
+
+if(!found){
+
+const n =
+t.match(
+/\b(\d+)\b/
+);
+
+if(n){
+
+min =
+parseInt(n[1]);
+
+found = true;
+
+}
+
+}
+
+
+
+return found
+? min
+: 0;
+
+}
+
+
+
+/* =========================================
+   KATEGORIA
+========================================= */
+
+function category(name){
+
+const n =
+norm(name);
+
+
+if(
+n.includes('patrol')
+)
+return 'Patrol';
+
+
+if(
+n.includes('selekcj')
+)
+return 'Selekcja';
+
+
+if(
+n.includes('wyklad')
+)
+return 'Wykład';
+
+
+if(
+n.includes('musztr')
+)
+return 'Musztra';
+
+
+if(
+n.includes('ochrona') ||
+n.includes('spotkani')
+)
+return 'Ochrona spotkania';
+
+
+if(
+n.includes('trening')
+){
+
+return
+n.includes('lacz')
+
+? 'Trening łączony'
+
+: 'Trening';
+
+}
+
+
+return 'Inne';
+
+}
+
+
+
+/* =========================================
+   ROZPOZNAWANIE ODDZIAŁU
+========================================= */
+
+function division(name){
+
+const n =
+norm(name)
+.replace(
+/[–—]/g,
+'-'
+);
+
+
+
+if(
+/^cg(?:\s|[-:|/]|$)/i.test(n)
+)
+return 'CG';
+
+
+
+if(
+/^jedi(?:\s|[-:|/]|$)/i.test(n)
+)
+return 'JEDI';
+
+
+
+if(
+/^(?:501|501st)(?:\s|[-:|/]|$)/i.test(n)
+)
+return '501';
+
+
+
+if(
+/^1st(?:\s|[-:|/]|$)/i.test(n)
+)
+return '1st';
+
+
+
+if(
+/(?:^|[\s\-:|/])cg(?:$|[\s\-:|/])/i.test(n)
+)
+return 'CG';
+
+
+
+if(
+/(?:^|[\s\-:|/])jedi(?:$|[\s\-:|/])/i.test(n)
+)
+return 'JEDI';
+
+
+
+if(
+/(?:^|[\s\-:|/])(?:501|501st)(?:$|[\s\-:|/])/i.test(n)
+)
+return '501';
+
+
+
+if(
+/(?:^|[\s\-:|/])1st(?:$|[\s\-:|/])/i.test(n)
+)
+return '1st';
+
+
+
+return 'Nieznany';
+
+}
+
+
+
+/* =========================================
+   CZYSZCZENIE MARKDOWN
+========================================= */
+
+function cleanMarkdown(s){
+
+return (s || '')
+
+.replace(
+/\*\*/g,
+''
+)
+
+.replace(
+/__/g,
+''
+)
+
+.trim();
+
+}
+
+
+
+/* =========================================
+   ROZDZIELANIE POŚWIADCZEŃ
+========================================= */
+
+function splitBlocks(raw){
+
+let s =
+raw.trim();
+
+
+if(!s)
+return [];
+
+
+const re =
+/(?:\*\*)?POSWIADCZENIE(?:\*\*)?/ig;
+
+
+const starts = [];
+
+
+let m;
+
+
+while(
+(m = re.exec(s)) !== null
+){
+
+starts.push(
+m.index
+);
+
+}
+
+
+if(
+starts.length <= 1
+)
+return [s];
+
+
+const blocks = [];
+
+
+for(
+let i = 0;
+i < starts.length;
+i++
+){
+
+blocks.push(
+
+s.slice(
+starts[i],
+starts[i + 1] ?? s.length
+)
+
+.trim()
+
+);
+
+}
+
+
+return blocks.filter(Boolean);
+
+}
+
+
+
+/* =========================================
+   ODCZYT SEKCJI
+========================================= */
+
+function sectionValue(
+block,
+label,
+nextLabels
+){
+
+const b =
+block.replace(
+/\r/g,
+''
+);
+
+
+const escaped =
+label.replace(
+/[.*+?^${}()|[\]\\]/g,
+'\\$&'
+);
+
+
+const next =
+nextLabels
+
+.map(
+x =>
+x.replace(
+/[.*+?^${}()|[\]\\]/g,
+'\\$&'
+)
+)
+
+.join('|');
+
+
+const re =
+new RegExp(
+
+'(?:\\*\\*)?' +
+
+escaped +
+
+'\\s*:\\s*' +
+
+'(?:\\*\\*)?' +
+
+'([\\s\\S]*?)' +
+
+'(?=(?:\\*\\*)?(?:' +
+
+next +
+
+')\\s*:|$)',
+
+'i'
+
+);
+
+
+const m =
+b.match(re);
+
+
+return m
+? cleanMarkdown(m[1]).trim()
+: '';
+
+}
+
+
+
+/* =========================================
+   PARSOWANIE POŚWIADCZENIA
+========================================= */
+
+function parseOne(block){
+
+
+const name =
+sectionValue(
+
+block,
+
+'NAZWA I RODZAJ AKTYWNOSCI',
+
+[
+'CZAS AKTYWNOSCI',
+'MIEJSCE AKTYWNOSCI',
+'OSOBY BIORACE UDZIAL'
+]
+
+);
+
+
+
+const durationText =
+sectionValue(
+
+block,
+
+'CZAS AKTYWNOSCI',
+
+[
+'MIEJSCE AKTYWNOSCI',
+'OSOBY BIORACE UDZIAL'
+]
+
+);
+
+
+
+const place =
+sectionValue(
+
+block,
+
+'MIEJSCE AKTYWNOSCI',
+
+[
+'OSOBY BIORACE UDZIAL'
+]
+
+);
+
+
+
+let peopleText =
+sectionValue(
+
+block,
+
+'OSOBY BIORACE UDZIAL',
+
+[]
+
+);
+
+
+
+peopleText =
+peopleText
+
+.replace(
+/^\s*[:\-]+/,
+''
+)
+
+.trim();
+
+
+
+const people =
+
+peopleText
+
+.split(/\n/)
+
+.map(
+x =>
+x
+
+.replace(
+/^\s*[-•]\s*/,
+''
+)
+
+.trim()
+)
+
+.filter(
+x =>
+x &&
+!/^poswiadczenie$/i.test(
+norm(x)
+)
+);
+
+
+
+const div =
+division(name);
+
+
+const targetName =
+targetForDivision(div);
+
+
+const targetFound =
+personPresent(
+people,
+div
+);
+
+
+const minutes =
+parseDuration(
+durationText
+);
+
+
+const issues = [];
+
+
+if(!name)
+issues.push(
+'brak nazwy/rodzaju'
+);
+
+
+if(
+!durationText ||
+minutes <= 0
+)
+issues.push(
+'brak lub błędny czas'
+);
+
+
+if(!place)
+issues.push(
+'brak miejsca'
+);
+
+
+if(!people.length)
+issues.push(
+'brak listy osób'
+);
+
+
+
+return {
+
+id:
+Date.now() +
+Math.random(),
+
+raw:
+block,
+
+name:
+name,
+
+durationText:
+durationText,
+
+minutes:
+minutes,
+
+place:
+place,
+
+people:
+people,
+
+targetFound:
+targetFound,
+
+targetName:
+targetName,
+
+division:
+div,
+
+cat:
+category(name),
+
+valid:
+issues.length === 0,
+
+issues:
+issues,
+
+createdAt:
+new Date().toISOString()
+
+};
+
+}
+
+
+
+/* =========================================
+   ZAPIS
+========================================= */
+
+function save(){
+
+localStorage.setItem(
+
+STORAGE,
+
+JSON.stringify(items)
+
+);
+
+render();
+
+}
+
+
+
+/* =========================================
+   ESCAPE HTML
+========================================= */
+
+function esc(s){
+
+return String(
+s ?? ''
+)
+
+.replace(
+
+/[&<>"']/g,
+
+c => ({
+
+'&':'&amp;',
+
+'<':'&lt;',
+
+'>':'&gt;',
+
+'"':'&quot;',
+
+"'":'&#39;'
+
+}[c])
+
+);
+
+}
+
+
+
+/* =========================================
+   FORMAT CZASU
+========================================= */
+
+function fmtMin(m){
+
+m =
+Number(m) || 0;
+
+
+const h =
+Math.floor(
+m / 60
+);
+
+
+const r =
+m % 60;
+
+
+return h
+
+? `${h} h ${r ? r + ' min' : ''}`.trim()
+
+: `${r} min`;
+
+}
+
+
+
+/* =========================================
+   PANEL ODDZIAŁU
+========================================= */
+
+function renderDivisionDashboard(){
+
+const dash =
+$('divisionDashboard');
+
+
+dash.classList.remove(
+'cg',
+'jedi',
+'d501',
+'d1st'
+);
+
+
+let scoped =
+items;
+
+
+if(
+selectedDivision !== 'all'
+){
+
+scoped =
+items.filter(
+x =>
+x.division === selectedDivision
+);
+
+
+const cls =
+
+selectedDivision === 'CG'
+
+? 'cg'
+
+: selectedDivision === 'JEDI'
+
+? 'jedi'
+
+: selectedDivision === '501'
+
+? 'd501'
+
+: 'd1st';
+
+
+dash.classList.add(cls);
+
+
+const person =
+targetForDivision(
+selectedDivision
+);
+
+
+$('dashTitle').textContent =
+
+selectedDivision +
+' — ' +
+person;
+
+
+$('dashPerson').textContent =
+
+'Łączne statystyki oddziału oraz łączny udział: ' +
+person;
+
+}
+
+else{
+
+$('dashTitle').textContent =
+'Wszystkie oddziały';
+
+
+$('dashPerson').textContent =
+'Podsumowanie wszystkich poświadczeń. Kliknij zakładkę oddziału, aby zobaczyć jego osobę i szczegóły.';
+
+}
+
+
+
+const personScoped =
+scoped.filter(
+x =>
+x.targetFound
+);
+
+
+
+$('dashActivities').textContent =
+scoped.length;
+
+
+
+$('dashMinutes').textContent =
+fmtMin(
+
+scoped.reduce(
+(a,x) =>
+a + x.minutes,
+0
+)
+
+);
+
+
+
+$('dashPresence').textContent =
+personScoped.length;
+
+
+
+$('dashPersonMinutes').textContent =
+fmtMin(
+
+personScoped.reduce(
+(a,x) =>
+a + x.minutes,
+0
+)
+
+);
+
+
+
+$('dashPeople').textContent =
+
+scoped.reduce(
+(a,x) =>
+a + x.people.length,
+0
+);
+
+
+
+const cats = {};
+
+
+scoped.forEach(
+x => {
+
+cats[x.cat] =
+(cats[x.cat] || 0) +
+x.minutes;
+
+}
+);
+
+
+
+const order = [
+
+'Patrol',
+
+'Selekcja',
+
+'Trening',
+
+'Trening łączony',
+
+'Wykład',
+
+'Musztra',
+
+'Ochrona spotkania',
+
+'Inne'
+
+];
+
+
+
+$('dashCategories').innerHTML =
+
+order
+
+.filter(
+c =>
+cats[c]
+)
+
+.map(
+c =>
+`<span class="chip">${esc(c)}: <b>${fmtMin(cats[c])}</b></span>`
+)
+
+.join('')
+
+||
+
+'<span class="small">Brak aktywności w tej zakładce.</span>';
+
+}
+
+
+
+/* =========================================
+   RENDER
+========================================= */
+
+function render(){
+
+
+items.forEach(
+it => {
+
+it.division =
+division(
+it.name
+);
+
+
+it.targetName =
+targetForDivision(
+it.division
+);
+
+
+it.targetFound =
+personPresent(
+it.people,
+it.division
+);
+
+}
+);
+
+
+
+renderDivisionDashboard();
+
+
+
+const targetItems =
+items.filter(
+x =>
+x.targetFound
+);
+
+
+
+$('countAll').textContent =
+items.length;
+
+
+$('countTarget').textContent =
+targetItems.length;
+
+
+
+$('minutesAll').textContent =
+fmtMin(
+
+items.reduce(
+(a,x) =>
+a + x.minutes,
+0
+)
+
+);
+
+
+
+$('peopleAvg').textContent =
+
+items.length
+
+? (
+
+items.reduce(
+(a,x) =>
+a + x.people.length,
+0
+)
+
+/
+
+items.length
+
+).toFixed(1)
+
+: '0';
+
+
+
+const last =
+items[
+items.length - 1
+];
+
+
+$('validity').innerHTML =
+
+last
+
+? (
+
+last.valid
+
+? '<span class="ok">✓ Poprawnie wystawione</span>'
+
+: '<span class="bad">✕ Błędy: ' +
+esc(
+last.issues.join(', ')
+)
++
+'</span>'
+
+)
+
+: '—';
+
+
+
+/* STATYSTYKI ODDZIAŁÓW */
+
+const divs = {};
+
+
+items.forEach(
+x => {
+
+if(
+x.division !== 'Nieznany'
+){
+
+if(
+!divs[x.division]
+){
+
+divs[x.division] = {
+
+count:0,
+
+minutes:0,
+
+mano:0
+
+};
+
+}
+
+
+divs[x.division].count++;
+
+divs[x.division].minutes +=
+x.minutes;
+
+
+if(
+x.targetFound
+)
+divs[x.division].mano++;
+
+}
+
+}
+);
+
+
+
+const divOrder = [
+'CG',
+'JEDI',
+'501',
+'1st'
+];
+
+
+
+$('divisionChips').innerHTML =
+
+divOrder
+
+.map(
+d => {
+
+const v =
+divs[d]
+||
+{
+count:0,
+minutes:0,
+mano:0
+};
+
+
+return `
+
+<span class="chip">
+
+<b>${d}</b>:
+
+${v.count} aktyw.
+
+/
+
+${fmtMin(v.minutes)}
+
+/
+
+${esc(targetForDivision(d))}
+
+${v.mano}×
+
+</span>
+
+`;
+
+}
+)
+
+.join('');
+
+
+
+/* KATEGORIE */
+
+const cats = {};
+
+
+items.forEach(
+x => {
+
+cats[x.cat] =
+(cats[x.cat] || 0)
++
+x.minutes;
+
+}
+);
+
+
+
+const order = [
+
+'Patrol',
+
+'Selekcja',
+
+'Trening',
+
+'Trening łączony',
+
+'Wykład',
+
+'Musztra',
+
+'Ochrona spotkania',
+
+'Inne'
+
+];
+
+
+
+$('categoryChips').innerHTML =
+
+order
+
+.filter(
+c =>
+cats[c]
+)
+
+.map(
+c =>
+`<span class="chip">${esc(c)}: <b>${fmtMin(cats[c])}</b></span>`
+)
+
+.join('')
+
+||
+
+'<span class="small">Brak aktywności.</span>';
+
+
+
+/* FILTRY */
+
+const mode =
+$('filter').value;
+
+
+const divMode =
+$('divisionFilter').value;
+
+
+const q =
+norm(
+$('search').value
+);
+
+
+
+let rows =
+
+items
+
+.map(
+(x,i) =>
+({
+...x,
+index:i
+})
+)
+
+.filter(
+x =>
+
+mode === 'all'
+
+||
+
+(
+mode === 'target' &&
+x.targetFound
+)
+
+||
+
+(
+mode === 'missing' &&
+!x.targetFound
+)
+
+);
+
+
+
+if(
+selectedDivision !== 'all'
+){
+
+rows =
+rows.filter(
+x =>
+x.division === selectedDivision
+);
+
+}
+
+else if(
+divMode !== 'all'
+){
+
+rows =
+rows.filter(
+x =>
+x.division === divMode
+);
+
+}
+
+
+
+if(q){
+
+rows =
+rows.filter(
+x =>
+norm(
+[
+x.name,
+x.division,
+x.cat,
+x.place,
+x.people.join(' ')
+]
+.join(' ')
+)
+.includes(q)
+);
+
+}
+
+
+
+/* TABELA */
+
+$('tbody').innerHTML =
+
+rows.length
+
+? rows
+
+.map(
+x =>
+`
+
+<tr>
+
+<td>
+${x.index + 1}
+</td>
+
+
+<td>
+
+<b>
+${esc(x.name || '—')}
+</b>
+
+<div class="small">
+${esc(x.durationText || '')}
+</div>
+
+</td>
+
+
+<td>
+<b>${esc(x.division)}</b>
+</td>
+
+
+<td>
+${esc(x.cat)}
+</td>
+
+
+<td>
+<b>${fmtMin(x.minutes)}</b>
+</td>
+
+
+<td>
+${esc(x.place || '—')}
+</td>
+
+
+<td>
+
+<b>
+${x.people.length}
+</b>
+
+<div
+class="small"
+title="${esc(x.people.join(' | '))}"
+>
+
+${x.people.length
+? 'lista odczytana'
+: 'brak listy'}
+
+</div>
+
+</td>
+
+
+<td>
+
+<b>
+${esc(x.targetName || '—')}
+</b>
+
+</td>
+
+
+<td>
+
+${
+
+x.targetFound
+
+? '<span class="pill yes">✓ TAK</span>'
+
+: '<span class="pill no">✕ NIE</span>'
+
+}
+
+</td>
+
+
+<td>
+
+${
+
+x.valid
+
+? '<span class="ok">✓ OK</span>'
+
+: '<span class="bad">✕ ' +
+esc(
+x.issues.join(', ')
+)
++
+'</span>'
+
+}
+
+</td>
+
+
+<td>
+
+<button
+class="btn danger"
+style="padding:7px 9px"
+onclick="removeItem(${x.id})"
+>
+
+Usuń
+
+</button>
+
+</td>
+
+</tr>
+
+`
+)
+
+.join('')
+
+:
+
+`
+
+<tr>
+
+<td
+colspan="11"
+class="small"
+>
+
+Brak wpisów do pokazania.
+
+</td>
+
+</tr>
+
+`;
+
+}
+
+
+
+/* =========================================
+   USUWANIE
+========================================= */
+
+function removeItem(id){
+
+items =
+items.filter(
+x =>
+x.id !== id
+);
+
+save();
+
+}
+
+
+window.removeItem =
+removeItem;
+
+
+
+/* =========================================
+   DODAWANIE
+========================================= */
+
+$('parseBtn').onclick =
+() => {
+
+
+const raw =
+$('raw').value;
+
+
+const blocks =
+splitBlocks(raw);
+
+
+const err =
+$('err');
+
+
+err.style.display =
+'none';
+
+
+err.textContent =
+'';
+
+
+
+if(
+!blocks.length
+){
+
+err.textContent =
+'Wklej najpierw poświadczenie.';
+
+err.style.display =
+'block';
+
+return;
+
+}
+
+
+
+const parsed =
+blocks.map(
+parseOne
+);
+
+
+items.push(
+...parsed
+);
+
+
+save();
+
+
+$('raw').value =
+'';
+
+
+
+const bad =
+parsed.filter(
+x =>
+!x.valid
+);
+
+
+
+if(
+bad.length
+){
+
+err.textContent =
+
+`Dodano ${parsed.length} wpis(ów), ale ${bad.length} ma braki: `
+
++
+
+bad.map(
+(x,i) =>
+`#${i+1}: ${x.issues.join(', ')}`
+)
+
+.join(' | ');
+
+
+err.style.display =
+'block';
+
+}
+
+};
+
+
+
+/* =========================================
+   ZAKŁADKI
+========================================= */
+
+document
+
+.querySelectorAll(
+'.division-tab'
+)
+
+.forEach(
+btn =>
+btn.addEventListener(
+'click',
+() => {
+
+
+selectedDivision =
+btn.dataset.division;
+
+
+
+document
+
+.querySelectorAll(
+'.division-tab'
+)
+
+.forEach(
+b =>
+b.classList.toggle(
+'active',
+b === btn
+)
+);
+
+
+
+$('divisionFilter').value =
+'all';
+
+
+render();
+
+}
+)
+);
+
+
+
+/* =========================================
+   FILTRY
+========================================= */
+
+$('filter').onchange =
+render;
+
+
+
+$('divisionFilter').onchange =
+() => {
+
+
+selectedDivision =
+'all';
+
+
+
+document
+
+.querySelectorAll(
+'.division-tab'
+)
+
+.forEach(
+b =>
+b.classList.toggle(
+'active',
+b.dataset.division === 'all'
+)
+);
+
+
+render();
+
+};
+
+
+
+$('search').oninput =
+render;
+
+
+
+/* =========================================
+   WYCZYŚĆ
+========================================= */
+
+$('clearBtn').onclick =
+() => {
+
+
+if(
+confirm(
+'Usunąć wszystkie zapisane poświadczenia?'
+)
+){
+
+items = [];
+
+save();
+
+}
+
+};
+
+
+
+/* =========================================
+   PRZYKŁAD
+========================================= */
+
+$('exampleBtn').onclick =
+() => {
+
+
+$('raw').value =
+`**POSWIADCZENIE**
+
+**NAZWA I RODZAJ AKTYWNOSCI:** JEDI - Wyklad
+**CZAS AKTYWNOSCI:** 70 minut
+**MIEJSCE AKTYWNOSCI:** Strefa JEDI
+**OSOBY BIORACE UDZIAL:**
+
+- Koordynator RSB Charles Kryze (STEAM_0:1:780059232) - default
+- Mistrz Rady 104th CPM Anakin Skywalker (STEAM_0:0:502028811) - default, jedi
+- Mistrz Rady Gab Duar (STEAM_0:0:713859371) - default, jedi
+- Mistrz Rady Ki-Adi-Mundi (STEAM_0:1:787394008) - default, jedi
+- Mł.Padawan Maciek Vois (STEAM_0:1:948462066) - default, jedi
+- St.Rycerz PT Aayla Secura (STEAM_0:0:711965053) - default, jedi
+- Wielki Mistrz Yoda (STEAM_0:1:499045966) - default, jedi
+- Porucznik RSB Aerin Cassandra Dualar (STEAM_0:0:578538985) - default`;
+
+};
+
+
+
+/* =========================================
+   EKSPORT CSV
+========================================= */
+
+$('exportBtn').onclick =
+() => {
+
+
+const hdr = [
+
+'Nazwa',
+
+'Oddzial',
+
+'Kategoria',
+
+'Minuty',
+
+'Miejsce',
+
+'Liczba osob',
+
+'Sprawdzana osoba',
+
+'Udzial',
+
+'Poprawne',
+
+'Uczestnicy'
+
+];
+
+
+
+const lines = [
+
+hdr,
+
+...items.map(
+x => [
+
+x.name,
+
+division(
+x.name
+),
+
+x.cat,
+
+x.minutes,
+
+x.place,
+
+x.people.length,
+
+targetForDivision(
+division(
+x.name
+)
+),
+
+x.targetFound
+? 'TAK'
+: 'NIE',
+
+x.valid
+? 'TAK'
+: 'NIE',
+
+x.people.join(' | ')
+
+]
+)
+
+]
+
+.map(
+r =>
+r.map(
+v =>
+'"' +
+String(
+v ?? ''
+)
+.replace(
+/"/g,
+'""'
+)
++
+'"'
+)
+
+.join(';')
+)
+
+.join('\n');
+
+
+
+const blob =
+new Blob(
+
+[
+'\ufeff' +
+lines
+],
+
+{
+type:
+'text/csv;charset=utf-8'
+}
+
+);
+
+
+
+const a =
+document.createElement('a');
+
+
+a.href =
+URL.createObjectURL(blob);
+
+
+a.download =
+'poswiadczenia_oddzialy_osoby.csv';
+
+
+a.click();
+
+
+
+setTimeout(
+() =>
+URL.revokeObjectURL(
+a.href
+),
+500
+);
+
+};
+
+
+
+/* START */
+
+render();
+
+</script>
+
+</body>
+</html>
